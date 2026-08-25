@@ -27,11 +27,11 @@ function readWholeFile() {
   // buf.length gives the size in bytes — the whole file is in RAM at once.
   fs.readFile(INPUT, (err, data) => {
     if (err) return console.error('readFile error:', err.message);
-    console.log(`readFile: loaded ${data.length} bytes into memory at once`);
+    console.log(`readFile: loaded ${data.length} bytes into memory`);
   });
 }
 
-// ── PART 2: stream the same file to a copy, log on finish ───────────────────
+// ── PART 2: stream the file and pipe it to a writable stream ────────────────
 function streamFile() {
   // Create a readable stream (source) and a writable stream (destination).
   // .pipe() connects them: chunks flow from source → destination automatically.
@@ -42,29 +42,22 @@ function streamFile() {
   read.pipe(write);
 
   write.on('finish', () => {
-    console.log('stream: finished copying via 64KB chunks (peak memory stays flat)');
+    console.log('stream: finished copying via 64KB chunks (flat memory)');
   });
 
   read.on('error', (err) => console.error('Read stream error:', err.message));
   write.on('error', (err) => console.error('Write stream error:', err.message));
 }
 
-// ── PART 3: explanation ──────────────────────────────────────────────────────
-/*
-  WHY STREAMING BEATS fs.readFile FOR LARGE FILES
+// ── PART 3: explain the difference ──────────────────────────────────────────
+// YOUR EXPLANATION:
+// fs.readFile loads the entire file into a single Buffer in memory all at once,
+// which means peak memory consumption scales directly with the file size.
+// In contrast, streams process data chunk-by-chunk (e.g. 64KB at a time),
+// keeping peak RAM usage flat and lightweight regardless of how large the file is.
 
-  fs.readFile loads the entire file into a single Buffer in RAM before your
-  callback ever runs, so the memory your process needs equals the file size —
-  a 2 GB upload demands 2 GB of free heap, and with many concurrent requests
-  that multiplies until the server crashes.
-
-  A readable stream never holds the whole file at once. It reads a small chunk
-  (typically 64 KB), hands it to the writable stream, frees that memory, then
-  reads the next chunk. Peak memory stays flat regardless of whether the file
-  is 5 KB or 5 GB, because at any instant only one chunk — not the whole file —
-  exists in RAM.
-*/
-
-// ── Run both ─────────────────────────────────────────────────────────────────
+// Run both approaches.
 readWholeFile();
 streamFile();
+
+module.exports = { readWholeFile, streamFile, INPUT, OUTPUT };
