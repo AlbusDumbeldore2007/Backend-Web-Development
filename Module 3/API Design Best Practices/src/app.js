@@ -10,14 +10,6 @@ function createApp() {
   app.use('/', postRoutes);
   app.get('/explode', controller.explode);
 
-  // TODO:
-  // - make public contract resource-oriented
-  // - standardise success envelope
-  // - standardise error envelope
-  // - add pagination metadata on list route
-  // - cap limit server-side (default limit = 2 for exercise)
-  // - stop exposing old verb routes as public contract
-  // - expose safe internal failure route for testing/demo
 
   return app;
 }
